@@ -1,0 +1,35 @@
+{
+  "name": "gpt5-mcp-server",
+  "version": "0.1.0",
+  "description": "An MCP server exposing GPT-5 inference with optional Web Search Preview.",
+  "type": "module",
+  "bin": {
+    "gpt5-mcp-server": "dist/cli.js",
+    "gpt5-mcp": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/cli.js",
+    "check": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.1",
+    "dotenv": "^17.2.1",
+    "openai": "^5.12.1",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  }
+}
