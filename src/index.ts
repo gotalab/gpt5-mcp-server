@@ -3,7 +3,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import OpenAI from "openai";
 import { z } from "zod";
-import { config, ReasoningEffort, SearchContextSize, Verbosity } from "./config.js";
+import { config } from "./config.js";
+import { runQuery } from "./openai.js";
+import type { QueryInput } from "./openai.js";
 
 // Initialize MCP server
 const server = new McpServer({ name: "gpt5-mcp", version: "0.1.0" });
@@ -40,66 +42,16 @@ server.tool(
   { input: QueryInputSchema },
   async ({ input }) => {
     const parsed = QueryInputSchema.parse(input);
-
-    const model = parsed.model ?? config.model;
-    const effRaw = (parsed.reasoning_effort ?? config.reasoningEffort) as
-      | "low"
-      | ReasoningEffort
-      | undefined;
-    let reasoningEffort: ReasoningEffort | undefined = effRaw
-      ? ((effRaw === "low" ? "minimal" : effRaw) as ReasoningEffort)
-      : undefined;
-    // OpenAI constraint: web_search cannot be used with reasoning.effort 'minimal'
-    if (reasoningEffort === "minimal" && (parsed.web_search?.enabled ?? config.webSearchDefaultEnabled)) {
-      reasoningEffort = "medium";
-    }
-    const verbosity: Verbosity | undefined = parsed.verbosity ?? config.defaultVerbosity;
-
-    // Web search settings
-    const webEnabled = parsed.web_search?.enabled ?? config.webSearchDefaultEnabled;
-    const searchContextSize: SearchContextSize | undefined =
-      parsed.web_search?.search_context_size ?? config.webSearchContextSize;
-
-    const toolChoice = parsed.tool_choice ?? "auto"; // or "none"
-    const parallelToolCalls = parsed.parallel_tool_calls ?? true;
-
-    // Build tools array conditionally
-    const tools: any[] = [];
-    if (webEnabled) {
-      const webTool: any = { type: "web_search_preview" };
-      if (searchContextSize) {
-        webTool.search_context_size = searchContextSize;
-      }
-      tools.push(webTool);
-    }
-
     try {
-      const response = await openai.responses.create({
-        model,
-        input: parsed.query,
-        ...(parsed.system ? { instructions: parsed.system } : {}),
-        ...(tools.length > 0 ? { tools } : {}),
-        tool_choice: toolChoice,
-        parallel_tool_calls: parallelToolCalls,
-        ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
-        ...(verbosity ? { text: { verbosity } } : {}),
-        ...(parsed.max_output_tokens ? { max_output_tokens: parsed.max_output_tokens } : {}),
-      } as any);
-
-      const text = (response as any).output_text ?? "";
-
+      const text = await runQuery(openai, parsed as QueryInput, config);
       return {
-        content: [
-          { type: "text" as const, text: text || "No response text available." },
-        ],
+        content: [{ type: "text" as const, text: text || "No response text available." }],
       };
     } catch (error) {
       console.error("Error calling OpenAI API:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
       return {
-        content: [
-          { type: "text" as const, text: `Error: ${message}` },
-        ],
+        content: [{ type: "text" as const, text: `Error: ${message}` }],
         isError: true,
       };
     }
