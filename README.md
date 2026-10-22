@@ -16,10 +16,12 @@ An MCP server that exposes a `gpt5_query` tool for GPT-5 inference via OpenAI Re
 
 ## Quick Start
 
+Use a supported Node.js release listed below and pnpm 12.14.0 (pinned in `package.json`).
+
 1) Install dependencies
 
 ```bash
-pnpm i # or npm i / yarn
+pnpm install --frozen-lockfile
 ```
 
 2) Configure environment
@@ -44,6 +46,9 @@ pnpm run build
 pnpm start
 ```
 
+Validate development changes with `pnpm check`, `pnpm test`, and `pnpm build`.
+The repository uses pnpm for development; published packages still support npm installation.
+
 For development (watch mode):
 
 ```bash
@@ -55,7 +60,7 @@ pnpm run dev
 This server speaks Model Context Protocol (MCP) over stdio and emits pure JSON to stdout, making it safe for Claude Code and Claude Desktop.
 
 Prerequisites
-- Node.js 18+
+- Node.js 22.23.4+, 24.22.1+, or 26.12.1+ (within those major versions)
 - OpenAI API key via `.env` or environment variable
 
 0) Build
@@ -290,7 +295,7 @@ MIT
 このサーバーは Model Context Protocol (MCP) の標準入出力（stdio）で動作します。純粋な JSON のみを stdout に出力する設計のため、MCP Inspector / Claude Code / Claude Desktop で安全に接続できます。
 
 前提
-- Node.js 18+
+- Node.js 22.23.4 以降の 22.x、24.22.1 以降の 24.x、または 26.12.1 以降の 26.x
 - OpenAI APIキーが `.env` もしくは環境変数で設定されていること
 
 0) ビルド
